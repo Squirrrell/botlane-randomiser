@@ -12,8 +12,7 @@
   --accent-soft: rgb(200 170 110 / 0.12);
   --on-accent: #11151b;
   --danger: #e0806f;
-  --shadow: 0 24px 60px -24px rgb(0 0 0 / 0.7);
-  --backdrop-opacity: 0.2;
+  --role-off-opacity: 0.45;
 
   --radius: 6px;
   --font-ui: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -21,7 +20,12 @@
   --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", monospace;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --card-w: clamp(200px, calc((100dvh - 380px) * 0.55), 290px);
+  /*
+   * Everything except the two cards has a fixed height (about 370px in
+   * total), so the cards take whatever is left of the viewport. That keeps
+   * the whole page on one screen without scrolling.
+   */
+  --card-h: clamp(200px, calc(100dvh - 376px), 560px);
 
   color-scheme: dark;
 }
@@ -38,8 +42,6 @@
   --accent-soft: rgb(122 92 34 / 0.1);
   --on-accent: #f8f9fb;
   --danger: #a3392a;
-  --shadow: 0 24px 60px -28px rgb(40 52 70 / 0.35);
-  --backdrop-opacity: 0.12;
   --role-off-opacity: 0.7;
   color-scheme: light;
 }
@@ -57,9 +59,7 @@
     --accent-soft: rgb(122 92 34 / 0.1);
     --on-accent: #f8f9fb;
     --danger: #a3392a;
-    --shadow: 0 24px 60px -28px rgb(40 52 70 / 0.35);
-    --backdrop-opacity: 0.12;
-  --role-off-opacity: 0.7;
+    --role-off-opacity: 0.7;
     color-scheme: light;
   }
 }
@@ -108,53 +108,25 @@ p {
   outline-offset: 2px;
 }
 
-/* ---------- backdrop (splash art of the current duo) ---------- */
-
-.backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  pointer-events: none;
-}
-
-.backdrop::after {
-  content: "";
+.sr-only {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, transparent 0%, var(--bg) 78%);
-}
-
-.backdrop-half {
-  background-size: cover;
-  background-position: center 20%;
-  opacity: 0;
-  transition: opacity 900ms var(--ease-out);
-}
-
-.backdrop-half.is-visible {
-  opacity: var(--backdrop-opacity);
-}
-
-.backdrop-half[data-backdrop="bot"] {
-  -webkit-mask-image: linear-gradient(to right, #000 15%, transparent 95%);
-  mask-image: linear-gradient(to right, #000 15%, transparent 95%);
-}
-
-.backdrop-half[data-backdrop="support"] {
-  -webkit-mask-image: linear-gradient(to left, #000 15%, transparent 95%);
-  mask-image: linear-gradient(to left, #000 15%, transparent 95%);
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 /* ---------- top bar ---------- */
 
 .topbar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  height: 60px;
+  height: 52px;
   padding: 0 24px;
   border-bottom: 1px solid var(--line);
 }
@@ -168,6 +140,7 @@ p {
   font-size: 22px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .topbar-right {
@@ -180,13 +153,14 @@ p {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -202,40 +176,34 @@ p {
 /* ---------- stage ---------- */
 
 .stage {
+  flex: 1 0 auto;
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 28px 24px 40px;
+  padding: 16px 24px 8px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   column-gap: 56px;
-  row-gap: 28px;
   align-items: start;
 }
 
-.intro {
-  grid-column: 1 / -1;
-  justify-self: center;
-  max-width: 56ch;
-  text-align: center;
-  color: var(--muted);
-}
-
 .slot {
-  width: var(--card-w);
+  width: min(100%, calc(var(--card-h) * 0.55));
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   container-type: inline-size;
 }
 
 .slot[data-slot="bot"] {
   grid-column: 1;
+  grid-row: 1;
   justify-self: end;
 }
 
 .slot[data-slot="support"] {
   grid-column: 3;
+  grid-row: 1;
   justify-self: start;
 }
 
@@ -243,6 +211,7 @@ p {
   display: flex;
   align-items: center;
   gap: 8px;
+  height: 28px;
   min-width: 0;
 }
 
@@ -253,18 +222,18 @@ p {
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-}
-
-.slot-head h2 {
   white-space: nowrap;
 }
 
 .pool-count {
   margin-top: -4px;
-  min-height: 18px;
-  font-family: var(--font-mono);
+  height: 16px;
   font-size: 12px;
+  line-height: 16px;
   color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pool-count.is-empty {
@@ -283,13 +252,14 @@ p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 2px 6px;
+  gap: 3px;
+  padding: 7px 2px 5px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   cursor: pointer;
   font-size: 11px;
+  line-height: 14px;
   font-weight: 500;
   color: var(--muted);
   transition:
@@ -300,10 +270,10 @@ p {
 }
 
 .role-btn img {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   filter: grayscale(1);
-  opacity: var(--role-off-opacity, 0.45);
+  opacity: var(--role-off-opacity);
   transition:
     filter 200ms var(--ease-out),
     opacity 200ms var(--ease-out);
@@ -329,9 +299,7 @@ p {
 }
 
 .role-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-  border-style: dashed;
+  cursor: default;
 }
 
 @container (max-width: 250px) {
@@ -344,11 +312,21 @@ p {
     white-space: nowrap;
   }
   .role-btn {
-    padding: 6px 0;
+    padding: 5px 0;
   }
   .role-btn img {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@container (max-width: 190px) {
+  .role-picker {
+    gap: 4px;
+  }
+  .role-btn img {
+    width: 20px;
+    height: 20px;
   }
 }
 
@@ -356,20 +334,18 @@ p {
 
 .card {
   position: relative;
-  aspect-ratio: 308 / 560;
+  height: var(--card-h);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   overflow: hidden;
-  box-shadow: var(--shadow);
+  container-type: inline-size;
   transition: border-color 250ms var(--ease-out);
 }
 
 .slot.is-locked .card {
   border-color: var(--accent);
-  box-shadow:
-    inset 0 0 0 1px var(--accent),
-    var(--shadow);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 
 .card-empty {
@@ -379,11 +355,11 @@ p {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 14px;
+  padding: 16px;
   color: var(--muted);
   font-size: 13px;
   text-align: center;
-  padding: 16px;
 }
 
 .card-empty img {
@@ -407,22 +383,12 @@ p {
   justify-content: center;
   padding: 12px;
   background: var(--surface-2);
-  overflow: hidden;
-}
-
-.card-spin::before {
-  content: "";
-  position: absolute;
-  inset: -20% 0;
-  background: linear-gradient(to bottom, transparent, var(--accent-soft), transparent);
-  animation: sweep 700ms linear infinite;
 }
 
 .card-spin span {
-  position: relative;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(22px, 12cqi, 36px);
+  font-size: clamp(20px, 12cqi, 36px);
   line-height: 1.05;
   text-transform: uppercase;
   text-align: center;
@@ -435,11 +401,9 @@ p {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   opacity: 0;
-  transform: scale(1.06);
-  transition:
-    opacity 450ms var(--ease-out),
-    transform 900ms var(--ease-out);
+  transition: opacity 350ms var(--ease-out);
 }
 
 .card[data-state="spinning"] .card-empty,
@@ -453,46 +417,21 @@ p {
 
 .card[data-state="spinning"] .card-art {
   opacity: 0;
-  transform: scale(1.06);
   transition: none;
 }
 
 .card[data-state="revealed"] .card-art {
   opacity: 1;
-  transform: scale(1);
 }
 
-@keyframes sweep {
-  from {
-    transform: translateY(-60%);
-  }
-  to {
-    transform: translateY(60%);
-  }
-}
-
-/* loading skeleton before the champion list arrives */
-.stage[data-state="loading"] .card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(100deg, transparent 30%, var(--accent-soft) 50%, transparent 70%);
-  background-size: 250% 100%;
-  animation: shimmer 1.4s linear infinite;
+/* loading placeholder before the champion list arrives */
+.stage[data-state="loading"] .card {
+  background: var(--surface-2);
 }
 
 .stage[data-state="loading"] .role-btn {
   pointer-events: none;
   opacity: 0.5;
-}
-
-@keyframes shimmer {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: -150% 0;
-  }
 }
 
 /* ---------- result row ---------- */
@@ -502,7 +441,7 @@ p {
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  min-height: 58px;
+  height: 50px;
 }
 
 .result-text {
@@ -512,19 +451,23 @@ p {
 .champ-name {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 28px;
-  line-height: 1.05;
+  font-size: 26px;
+  line-height: 28px;
   text-transform: uppercase;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .champ-usual {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: 4px;
+  margin-top: 3px;
   font-size: 12px;
+  line-height: 16px;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .champ-usual span {
@@ -535,8 +478,9 @@ p {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  height: 34px;
+  height: 32px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -573,26 +517,39 @@ p {
   cursor: default;
 }
 
+@container (max-width: 230px) {
+  .lock-btn {
+    width: 32px;
+    padding: 0;
+  }
+  .lock-btn span {
+    display: none;
+  }
+  .champ-name {
+    font-size: 22px;
+    line-height: 26px;
+  }
+}
+
 /* ---------- controls ---------- */
 
 .controls {
   grid-column: 2;
-  grid-row: 2;
+  grid-row: 1;
   align-self: center;
   width: 220px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 20px;
+  gap: 18px;
 }
 
 .roll-btn {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  height: 64px;
+  height: 60px;
   padding: 0 20px;
   border: 0;
   border-radius: var(--radius);
@@ -603,10 +560,8 @@ p {
   font-size: 28px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  white-space: nowrap;
   cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.25),
-    0 14px 30px -14px var(--accent);
   transition:
     background-color 200ms var(--ease-out),
     transform 120ms var(--ease-out),
@@ -615,17 +570,6 @@ p {
 
 .roll-btn i {
   font-size: 24px;
-}
-
-.roll-btn kbd {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0;
-  padding: 1px 6px;
-  border: 1px solid currentColor;
-  border-radius: 4px;
-  opacity: 0.55;
 }
 
 .roll-btn:hover:not(:disabled) {
@@ -639,16 +583,6 @@ p {
 .roll-btn:disabled {
   cursor: default;
   opacity: 0.55;
-}
-
-.stage[data-rolling] .roll-btn i {
-  animation: tumble 600ms linear infinite;
-}
-
-@keyframes tumble {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .switch {
@@ -719,18 +653,23 @@ p {
 .switch-title {
   font-weight: 600;
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .switch-help {
   font-size: 12px;
+  line-height: 1.4;
   color: var(--muted);
 }
 
 .status {
-  min-height: 21px;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--danger);
   text-align: center;
+}
+
+.status:empty {
+  display: none;
 }
 
 .text-btn {
@@ -738,43 +677,51 @@ p {
   border: 0;
   background: none;
   color: var(--accent);
-  font-size: 13px;
+  font-size: inherit;
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 /* ---------- history ---------- */
 
 .history {
+  flex-shrink: 0;
   width: 100%;
   max-width: 1120px;
+  height: 60px;
   margin: 0 auto;
-  padding: 24px 24px 8px;
-  border-top: 1px solid var(--line);
-}
-
-.history-head {
+  padding: 0 24px;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
 }
 
-.history-head h2 {
-  font-size: 15px;
+.history h2 {
+  font-size: 13px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .history-list {
+  flex: 1;
+  min-width: 0;
   list-style: none;
   margin: 0;
-  padding: 0 0 12px;
+  padding: 0;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   overflow-x: auto;
   scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.history-list:empty {
+  display: none;
 }
 
 .history-item {
@@ -782,17 +729,16 @@ p {
   scroll-snap-align: start;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 14px 6px 6px;
+  gap: 3px;
+  padding: 4px 12px 4px 4px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
-  animation: rise 400ms var(--ease-out);
 }
 
 .history-item img {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 4px;
 }
 
@@ -800,8 +746,8 @@ p {
   display: flex;
   flex-direction: column;
   margin-left: 6px;
-  font-size: 13px;
-  line-height: 1.3;
+  font-size: 12px;
+  line-height: 15px;
   white-space: nowrap;
 }
 
@@ -810,89 +756,122 @@ p {
 }
 
 .history-empty {
-  padding-bottom: 12px;
-  font-size: 13px;
+  flex: 1;
   color: var(--muted);
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
 }
 
 /* ---------- footer ---------- */
 
 .footer {
+  flex-shrink: 0;
   width: 100%;
   max-width: 1120px;
-  margin: auto auto 0;
-  padding: 24px 24px 32px;
-  display: grid;
-  gap: 8px;
+  height: 36px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 12px;
   color: var(--muted);
 }
 
-.footer p {
-  max-width: 90ch;
+.legal {
+  max-width: min(560px, calc(100vw - 32px));
+  margin: auto;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.legal p + p {
+  margin-top: 10px;
+}
+
+.legal .text-btn {
+  margin-top: 14px;
+}
+
+.legal::backdrop {
+  background: rgb(5 8 12 / 0.55);
 }
 
 /* ---------- smaller screens ---------- */
 
 @media (max-width: 900px) {
+  :root {
+    --card-h: clamp(180px, calc(100dvh - 380px), 560px);
+  }
+
   .stage {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
     column-gap: 12px;
-    row-gap: 20px;
-    padding: 20px 16px 24px;
-  }
-
-  .slot {
-    width: 100%;
-    max-width: 290px;
-  }
-
-  .slot[data-slot="bot"] {
-    grid-column: 1;
-    grid-row: 2;
+    row-gap: 12px;
+    padding: 12px 16px 8px;
   }
 
   .slot[data-slot="support"] {
     grid-column: 2;
-    grid-row: 2;
   }
 
   .controls {
     grid-column: 1 / -1;
-    grid-row: 3;
+    grid-row: 2;
     width: 100%;
-    max-width: 592px;
+    max-width: 640px;
     justify-self: center;
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-    gap: 12px;
-    padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
-    background: linear-gradient(to bottom, transparent, var(--bg) 18px);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+  }
+
+  .roll-btn {
+    flex: 1;
+    height: 52px;
+    font-size: 24px;
   }
 
   .switch {
-    align-self: center;
+    align-items: center;
   }
 
-  .topbar,
+  .switch-help {
+    display: none;
+  }
+
+  .status {
+    flex-basis: 100%;
+  }
+
+  .topbar {
+    height: 48px;
+    padding: 0 16px;
+  }
+
   .history,
   .footer {
     padding-left: 16px;
     padding-right: 16px;
   }
+
+  .history {
+    height: 54px;
+  }
+
+  .footer {
+    height: 32px;
+  }
 }
 
 @media (max-width: 520px) {
-  .intro {
-    font-size: 14px;
+  .slot-head {
+    height: 24px;
   }
 
   .slot-head h2 {
@@ -904,26 +883,16 @@ p {
     height: 22px;
   }
 
-  .champ-name {
-    font-size: 22px;
+  .brand {
+    font-size: 19px;
   }
 
-  .result {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .roll-btn {
-    height: 56px;
-    font-size: 24px;
-  }
-
-  .roll-btn kbd {
+  .history-names {
     display: none;
   }
 
-  .brand {
-    font-size: 19px;
+  .history-item {
+    padding: 4px;
   }
 }
 
