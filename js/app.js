@@ -38,6 +38,7 @@
   const rollLabel = $("#roll-label");
   const offMetaInput = $("#offmeta");
   const statusEl = $("#status");
+  const announceEl = $("#announce");
   const patchEl = $("#patch");
   const historyList = $("#history-list");
   const historyEmpty = $("#history-empty");
@@ -56,7 +57,6 @@
       name: $("[data-name]", root),
       usual: $("[data-usual]", root),
       lock: $("[data-lock]", root),
-      backdrop: $(`[data-backdrop="${key}"]`),
     };
   }
 
@@ -118,23 +118,20 @@
   }
 
   const artUrl = (id) => `${DDRAGON}/cdn/img/champion/loading/${id}_0.jpg`;
-  const splashUrl = (id) => `${DDRAGON}/cdn/img/champion/splash/${id}_0.jpg`;
   const iconUrl = (id) => `${DDRAGON}/cdn/${state.version}/img/champion/${id}.png`;
 
   /* ---------- pools ---------- */
 
-  function effectiveRoles(slotKey) {
-    const slot = state.slots[slotKey];
-    const roles = new Set(slot.pool);
-    if (state.offMeta) roles.delete(slot.lane);
-    return roles;
-  }
-
+  /*
+   * A champion is in a slot's pool if any of its usual roles is switched on.
+   * Off-meta only also drops champions who already play the slot's lane,
+   * unless the player has switched that lane's own role on for the slot.
+   */
   function poolFor(slotKey) {
     const slot = state.slots[slotKey];
-    const roles = effectiveRoles(slotKey);
+    const skipMeta = state.offMeta && !slot.pool.has(slot.lane);
     return state.champions.filter(
-      (c) => c.roles.some((r) => roles.has(r)) && !(state.offMeta && c.roles.includes(slot.lane))
+      (c) => c.roles.some((r) => slot.pool.has(r)) && !(skipMeta && c.roles.includes(slot.lane))
     );
   }
 
@@ -161,18 +158,15 @@
       const count = state.champions.length ? poolFor(key).length : null;
       for (const btn of els.picker.children) {
         const role = btn.dataset.role;
-        const blocked = state.offMeta && role === slot.lane;
-        const on = slot.pool.has(role) && !blocked;
+        const on = slot.pool.has(role);
         btn.setAttribute("aria-pressed", String(on));
-        btn.disabled = blocked || state.rolling;
-        btn.title = blocked
-          ? `Off-meta only is on, so ${ROLE_BY_KEY[role].label} champions are skipped here`
-          : `${on ? "Remove" : "Add"} ${ROLE_BY_KEY[role].label} champions`;
+        btn.disabled = state.rolling;
+        btn.title = `${on ? "Remove" : "Add"} ${ROLE_BY_KEY[role].label} champions`;
       }
       if (count === null) {
         els.count.textContent = "";
       } else {
-        els.count.textContent = `Pool: ${count} ${count === 1 ? "champion" : "champions"}`;
+        els.count.textContent = `Rolls from ${count} ${count === 1 ? "champion" : "champions"}`;
         els.count.classList.toggle("is-empty", count === 0);
       }
       els.root.classList.toggle("is-empty-pool", count === 0);
@@ -307,8 +301,6 @@
     els.art.src = artUrl(finalChamp.id);
     els.art.alt = `${finalChamp.name} loading screen art`;
     els.card.dataset.state = "revealed";
-    els.backdrop.style.backgroundImage = `url("${splashUrl(finalChamp.id)}")`;
-    els.backdrop.classList.add("is-visible");
   }
 
   async function roll() {
@@ -351,7 +343,7 @@
         state.history.unshift({ bot, support: sup });
         state.history = state.history.slice(0, HISTORY_MAX);
       }
-      statusEl.textContent = `${state.byId[bot].name} bot, ${state.byId[sup].name} support.`;
+      announceEl.textContent = `${state.byId[bot].name} bot, ${state.byId[sup].name} support.`;
     }
     save();
     renderAll();
