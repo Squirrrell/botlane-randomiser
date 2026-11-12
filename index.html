@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Botlane Randomiser</title>
+  <meta name="description" content="Roll a random League of Legends bot lane duo and choose which roles each champion is pulled from. Built for off-meta picks like Kayn support.">
+  <meta name="theme-color" content="#0b0e13">
+  <link rel="icon" type="image/png" href="assets/roles/bottom.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://ddragon.leagueoflegends.com">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+  <link rel="stylesheet" href="css/style.css">
+
+  <script>
+    // Apply the saved theme before first paint so the page doesn't flash.
+    try {
+      var t = localStorage.getItem("botlane-randomiser:theme");
+      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true">
+    <div class="backdrop-half" data-backdrop="bot"></div>
+    <div class="backdrop-half" data-backdrop="support"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/roles/bottom.png" alt="" width="22" height="22">
+      <span>Botlane Randomiser</span>
+    </div>
+    <div class="topbar-right">
+      <span class="patch" id="patch" hidden></span>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">
+        <i class="ph ph-moon" aria-hidden="true"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage" data-state="loading">
+    <p class="intro">Roll a random bot lane duo. Above each card, pick which roles that champion can come from.</p>
+
+    <section class="slot" data-slot="bot" aria-labelledby="slot-bot-title">
+      <div class="slot-head">
+        <img class="lane-icon" src="assets/roles/bottom.png" alt="" width="28" height="28">
+        <h2 id="slot-bot-title">Bot lane</h2>
+      </div>
+      <div class="role-picker" role="group" aria-label="Bot lane: pick from champions who normally play" data-picker></div>
+      <p class="pool-count" data-pool-count></p>
+      <div class="card" data-card>
+        <div class="card-empty">
+          <img src="assets/roles/bottom.png" alt="" width="96" height="96">
+          <span>Waiting for a roll</span>
+        </div>
+        <div class="card-spin" aria-hidden="true"><span data-spin-name></span></div>
+        <img class="card-art" data-art alt="">
+      </div>
+      <div class="result" data-result>
+        <div class="result-text">
+          <p class="champ-name" data-name>&nbsp;</p>
+          <p class="champ-usual" data-usual></p>
+        </div>
+        <button class="lock-btn" type="button" data-lock aria-pressed="false" disabled>
+          <i class="ph ph-lock-simple-open" aria-hidden="true"></i>
+          <span>Lock</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="controls">
+      <button class="roll-btn" id="roll" type="button" disabled>
+        <i class="ph-bold ph-dice-five" aria-hidden="true"></i>
+        <span id="roll-label">Loading</span>
+        <kbd aria-hidden="true">R</kbd>
+      </button>
+      <label class="switch">
+        <input type="checkbox" id="offmeta" checked>
+        <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+        <span class="switch-text">
+          <span class="switch-title">Off-meta only</span>
+          <span class="switch-help">Skips champions who normally play that lane</span>
+        </span>
+      </label>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </div>
+
+    <section class="slot" data-slot="support" aria-labelledby="slot-support-title">
+      <div class="slot-head">
+        <img class="lane-icon" src="assets/roles/utility.png" alt="" width="28" height="28">
+        <h2 id="slot-support-title">Support</h2>
+      </div>
+      <div class="role-picker" role="group" aria-label="Support: pick from champions who normally play" data-picker></div>
+      <p class="pool-count" data-pool-count></p>
+      <div class="card" data-card>
+        <div class="card-empty">
+          <img src="assets/roles/utility.png" alt="" width="96" height="96">
+          <span>Waiting for a roll</span>
+        </div>
+        <div class="card-spin" aria-hidden="true"><span data-spin-name></span></div>
+        <img class="card-art" data-art alt="">
+      </div>
+      <div class="result" data-result>
+        <div class="result-text">
+          <p class="champ-name" data-name>&nbsp;</p>
+          <p class="champ-usual" data-usual></p>
+        </div>
+        <button class="lock-btn" type="button" data-lock aria-pressed="false" disabled>
+          <i class="ph ph-lock-simple-open" aria-hidden="true"></i>
+          <span>Lock</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <section class="history" aria-labelledby="history-title">
+    <div class="history-head">
+      <h2 id="history-title">Recent duos</h2>
+      <button class="text-btn" type="button" id="history-clear" hidden>Clear</button>
+    </div>
+    <ol class="history-list" id="history-list"></ol>
+    <p class="history-empty" id="history-empty">Your last few duos will show up here.</p>
+  </section>
+
+  <footer class="footer">
+    <p>Champion data and art come from Riot's Data Dragon. Role icons come from CommunityDragon.</p>
+    <p>Botlane Randomiser isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
+  </footer>
+
+  <script src="js/roles.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
