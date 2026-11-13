@@ -150,9 +150,19 @@ p {
   opacity: var(--backdrop-opacity);
 }
 
+/*
+ * Splash art is 1215x717 and the champion usually sits about 60% of the
+ * way across it. Slide the image so that point lands at 9vw, out from
+ * behind the bot lane card. The image is at least as tall as the viewport
+ * (169.46dvh wide) and at least 102.5vw wide, so it always covers the
+ * whole left half even after the shift.
+ */
 .backdrop-half[data-backdrop="bot"] {
-  -webkit-mask-image: linear-gradient(to right, #000 20%, transparent 95%);
-  mask-image: linear-gradient(to right, #000 20%, transparent 95%);
+  --splash-w: max(169.46dvh, 102.5vw);
+  background-size: var(--splash-w) auto;
+  background-position: calc(9vw - 0.6 * var(--splash-w)) 20%;
+  -webkit-mask-image: linear-gradient(to right, #000 30%, transparent 95%);
+  mask-image: linear-gradient(to right, #000 30%, transparent 95%);
 }
 
 .backdrop-half[data-backdrop="support"] {
