@@ -4,7 +4,7 @@
   const DDRAGON = "https://ddragon.leagueoflegends.com";
   const STORE_KEY = "botlane-randomiser:v1";
   const THEME_KEY = "botlane-randomiser:theme";
-  const HISTORY_MAX = 8;
+  const HISTORY_MAX = 6;
 
   const ROLES = [
     { key: "top", label: "Top", icon: "assets/roles/top.png" },
