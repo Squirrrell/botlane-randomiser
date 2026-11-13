@@ -13,6 +13,7 @@
   --on-accent: #11151b;
   --danger: #e0806f;
   --role-off-opacity: 0.45;
+  --backdrop-opacity: 0.22;
 
   --radius: 6px;
   --font-ui: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -43,6 +44,7 @@
   --on-accent: #f8f9fb;
   --danger: #a3392a;
   --role-off-opacity: 0.7;
+  --backdrop-opacity: 0.14;
   color-scheme: light;
 }
 
@@ -60,6 +62,7 @@
     --on-accent: #f8f9fb;
     --danger: #a3392a;
     --role-off-opacity: 0.7;
+  --backdrop-opacity: 0.14;
     color-scheme: light;
   }
 }
@@ -116,6 +119,45 @@ p {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* ---------- backdrop: splash art of the rolled duo ---------- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  pointer-events: none;
+}
+
+.backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 0%, var(--bg) 85%);
+}
+
+.backdrop-half {
+  background-size: cover;
+  background-position: center 20%;
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out);
+}
+
+.backdrop-half.is-visible {
+  opacity: var(--backdrop-opacity);
+}
+
+.backdrop-half[data-backdrop="bot"] {
+  -webkit-mask-image: linear-gradient(to right, #000 20%, transparent 95%);
+  mask-image: linear-gradient(to right, #000 20%, transparent 95%);
+}
+
+.backdrop-half[data-backdrop="support"] {
+  -webkit-mask-image: linear-gradient(to left, #000 20%, transparent 95%);
+  mask-image: linear-gradient(to left, #000 20%, transparent 95%);
 }
 
 /* ---------- top bar ---------- */

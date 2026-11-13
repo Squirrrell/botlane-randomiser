@@ -57,6 +57,7 @@
       name: $("[data-name]", root),
       usual: $("[data-usual]", root),
       lock: $("[data-lock]", root),
+      backdrop: $(`[data-backdrop="${key}"]`),
     };
   }
 
@@ -118,6 +119,7 @@
   }
 
   const artUrl = (id) => `${DDRAGON}/cdn/img/champion/loading/${id}_0.jpg`;
+  const splashUrl = (id) => `${DDRAGON}/cdn/img/champion/splash/${id}_0.jpg`;
   const iconUrl = (id) => `${DDRAGON}/cdn/${state.version}/img/champion/${id}.png`;
 
   /* ---------- pools ---------- */
@@ -301,6 +303,8 @@
     els.art.src = artUrl(finalChamp.id);
     els.art.alt = `${finalChamp.name} loading screen art`;
     els.card.dataset.state = "revealed";
+    els.backdrop.style.backgroundImage = `url("${splashUrl(finalChamp.id)}")`;
+    els.backdrop.classList.add("is-visible");
   }
 
   async function roll() {
