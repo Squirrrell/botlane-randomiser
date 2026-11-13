@@ -139,35 +139,56 @@ p {
   background: linear-gradient(to bottom, transparent 0%, var(--bg) 85%);
 }
 
+/*
+ * Each half shows one champion's splash art (1215x717), placed so the
+ * champion stands in the free strip beside their card: 9vw from the left
+ * edge for bot lane, 9vw from the right edge for support.
+ *
+ * JS sets per champion:
+ *   --splash  the image url
+ *   --fx      where the champion stands in the art (0-1, js/splash-focus.js)
+ *   --edge    min(fx, 1 - fx), how close they are to the art's nearest side
+ *   --t       9vw or 41vw, the target spot inside this half
+ * and adds .is-flipped when the art has to be mirrored so the champion
+ * ends up on the outer side of the screen.
+ *
+ * The art is drawn at least viewport-tall and 102.5vw wide, and wider still
+ * when the champion is near the art's edge, so the half is always covered.
+ */
 .backdrop-half {
-  background-size: cover;
-  background-position: center 20%;
+  position: relative;
+  overflow: hidden;
   opacity: 0;
   transition: opacity 600ms var(--ease-out);
+}
+
+.backdrop-half::before {
+  --w: max(169.46dvh, 102.5vw, calc(9vw / var(--edge, 0.4)));
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--splash, none);
+  background-repeat: no-repeat;
+  background-size: var(--w) auto;
+  background-position: calc(var(--t, 41vw) - var(--fx, 0.6) * var(--w)) 20%;
+}
+
+.backdrop-half.is-flipped::before {
+  transform: scaleX(-1);
 }
 
 .backdrop-half.is-visible {
   opacity: var(--backdrop-opacity);
 }
 
-/*
- * Splash art is 1215x717 and the champion usually sits about 60% of the
- * way across it. Slide the image so that point lands at 9vw, out from
- * behind the bot lane card. The image is at least as tall as the viewport
- * (169.46dvh wide) and at least 102.5vw wide, so it always covers the
- * whole left half even after the shift.
- */
 .backdrop-half[data-backdrop="bot"] {
-  --splash-w: max(169.46dvh, 102.5vw);
-  background-size: var(--splash-w) auto;
-  background-position: calc(9vw - 0.6 * var(--splash-w)) 20%;
   -webkit-mask-image: linear-gradient(to right, #000 30%, transparent 95%);
   mask-image: linear-gradient(to right, #000 30%, transparent 95%);
 }
 
 .backdrop-half[data-backdrop="support"] {
-  -webkit-mask-image: linear-gradient(to left, #000 20%, transparent 95%);
-  mask-image: linear-gradient(to left, #000 20%, transparent 95%);
+  -webkit-mask-image: linear-gradient(to left, #000 30%, transparent 95%);
+  mask-image: linear-gradient(to left, #000 30%, transparent 95%);
 }
 
 /* ---------- top bar ---------- */

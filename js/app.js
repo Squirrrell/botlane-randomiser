@@ -281,6 +281,21 @@
 
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  // Slide the champion's splash art into the free strip beside their card.
+  // Bot lane wants the champion on the left edge, support on the right, so
+  // art is mirrored when the champion faces the wrong side of the picture.
+  function setBackdrop(slotKey, id) {
+    const el = slotEls[slotKey].backdrop;
+    const fx = (window.SPLASH_FOCUS && window.SPLASH_FOCUS[id]) || 0.6;
+    const flip = slotKey === "bot" ? fx >= 0.5 : fx < 0.5;
+    el.style.setProperty("--splash", `url("${splashUrl(id)}")`);
+    el.style.setProperty("--fx", String(fx));
+    el.style.setProperty("--edge", String(Math.max(0.05, Math.min(fx, 1 - fx))));
+    el.style.setProperty("--t", fx < 0.5 ? "9vw" : "41vw");
+    el.classList.toggle("is-flipped", flip);
+    el.classList.add("is-visible");
+  }
+
   async function spin(slotKey, finalChamp, delay) {
     const els = slotEls[slotKey];
     const pool = poolFor(slotKey);
@@ -303,8 +318,7 @@
     els.art.src = artUrl(finalChamp.id);
     els.art.alt = `${finalChamp.name} loading screen art`;
     els.card.dataset.state = "revealed";
-    els.backdrop.style.backgroundImage = `url("${splashUrl(finalChamp.id)}")`;
-    els.backdrop.classList.add("is-visible");
+    setBackdrop(slotKey, finalChamp.id);
   }
 
   async function roll() {
